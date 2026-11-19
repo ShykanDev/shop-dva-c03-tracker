@@ -48,7 +48,7 @@ function exportar() {
   document.body.appendChild(enlace)
   enlace.click()
   document.body.removeChild(enlace)
-  URL.revokeObjectURL(url)
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   mensajeRespaldo.value = {
     tipo: 'ok',
     texto: 'Progreso exportado. Guarda el JSON como respaldo.',
