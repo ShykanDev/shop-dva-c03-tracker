@@ -14,6 +14,7 @@ No es la app de estudio. Es un tracker aparte: checklist, guía paso a paso y pr
 - **24 prompts de Amazon Q**: 16 por paso + 8 por lab, cada uno con su propio estado de completado.
 - **8 labs del Paso 14**: Step Functions, Kinesis + Firehose, Athena, Bedrock, ElastiCache/DAX, RDS/Aurora, testing con SAM y blue/green.
 - **Cierre**: definición de terminado, costos y limpieza, y cobertura real del examen.
+- **Respaldo**: exportar el progreso a JSON e importarlo en otro navegador o dispositivo.
 - **Documentación técnica**: identidad, usuarios, flujo, stack, 13 rutas, 5 stores, 3 tablas DynamoDB, 2 buckets, 14 Lambdas y datos del examen.
 - **Especificación original** en `public/docs/especificacion-tecnica-dva-c03.txt`, descargable desde la app.
 - **Sugerencias de Vue** en los pasos donde aplican, con el porqué.
@@ -74,7 +75,16 @@ Forma del dato:
 - No se guarda nada en un servidor.
 - Si el JSON se corrompe, la app arranca en blanco sin lanzar.
 - El botón de reinicio de `/cierre` borra solo esa clave.
-- Copiar el proyecto a otra Mac no traslada el progreso.
+- Copiar el proyecto a otra Mac no traslada el progreso: usa exportar/importar.
+
+### Respaldo y traslado
+
+En `/cierre`, sección **Respaldo de progreso**:
+
+- **Exportar progreso** descarga `shop-dva-c03-progreso-YYYY-MM-DD.json` con formato legible (`version`, `acciones`, `prompts`).
+- **Importar progreso** lee ese JSON, valida la forma, pide confirmación si ya hay progreso y reemplaza el estado actual.
+- Si el archivo no es JSON o no tiene el formato esperado, muestra un error y no toca el progreso existente.
+- El archivo se genera y se lee en tu equipo; no se envía a ningún servidor.
 
 ## Estructura
 
@@ -126,6 +136,7 @@ Los tests comprueban, entre otras cosas:
 - Todos los nombres de rutas, tablas, Lambdas y servicios de la spec.
 - Que no haya planificación por semana ni límites diarios.
 - Persistencia, normalización de datos corruptos y reinicio.
+- Exportación/importación de respaldo JSON, validación y rechazo de archivos inválidos.
 - Chip «Completado», copia del prompt y accesibilidad del checkbox.
 
 ## Deploy

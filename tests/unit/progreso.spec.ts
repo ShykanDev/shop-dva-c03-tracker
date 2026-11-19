@@ -5,6 +5,8 @@ import {
   alternarPrompt,
   estaHecha,
   estaPromptHecho,
+  exportarProgreso,
+  importarProgreso,
   normalizarProgreso,
   recargarProgreso,
   reiniciarProgreso,
@@ -88,5 +90,38 @@ describe('progreso persistente', () => {
     expect(localStorage.getItem(CLAVE_PROGRESO)).toBeNull()
     expect(localStorage.getItem('otra-app')).toBe('no tocar')
     expect(useProgreso().value.acciones).toEqual({})
+  })
+
+  it('exporta un JSON legible y lo reimporta en otro estado', () => {
+    alternarAccion('paso-2.1')
+    alternarPrompt('paso-2.prompt')
+
+    const json = exportarProgreso()
+    expect(json).toContain('\n  "version": 1')
+    const crudo = JSON.parse(json)
+    expect(crudo.acciones['paso-2.1'].hecho).toBe(true)
+
+    reiniciarProgresoEnMemoria()
+    expect(estaHecha('paso-2.1')).toBe(false)
+
+    const resumen = importarProgreso(crudo)
+    expect(resumen).toEqual({ acciones: 1, prompts: 1 })
+    expect(estaHecha('paso-2.1')).toBe(true)
+    expect(estaPromptHecho('paso-2.prompt')).toBe(true)
+
+    const guardado = JSON.parse(localStorage.getItem(CLAVE_PROGRESO) ?? '{}')
+    expect(guardado.acciones['paso-2.1'].hecho).toBe(true)
+  })
+
+  it('acepta un respaldo vacío pero con formato correcto', () => {
+    const resumen = importarProgreso({ version: 1, acciones: {}, prompts: {} })
+    expect(resumen).toEqual({ acciones: 0, prompts: 0 })
+    expect(useProgreso().value.acciones).toEqual({})
+  })
+
+  it('rechaza archivos que no son un respaldo', () => {
+    expect(() => importarProgreso('texto')).toThrow(/objeto de progreso/)
+    expect(() => importarProgreso([])).toThrow(/objeto de progreso/)
+    expect(() => importarProgreso({ foo: 1 })).toThrow(/acciones o prompts/)
   })
 })

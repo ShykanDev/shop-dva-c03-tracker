@@ -102,6 +102,50 @@ export function recargarProgreso(): void {
   progreso.value = leerDeStorage()
 }
 
+export interface ResumenImportacion {
+  acciones: number
+  prompts: number
+}
+
+/** Serializa el progreso con formato legible para respaldo o traslado. */
+export function exportarProgreso(): string {
+  return JSON.stringify(progreso.value, null, 2)
+}
+
+/**
+ * Reemplaza el progreso actual con un respaldo exportado por esta app.
+ * Valida la forma mínima y lanza un error legible si el archivo no sirve.
+ */
+export function importarProgreso(crudo: unknown): ResumenImportacion {
+  if (typeof crudo !== 'object' || crudo === null || Array.isArray(crudo)) {
+    throw new Error('El archivo no contiene un objeto de progreso válido.')
+  }
+
+  const datos = crudo as Record<string, unknown>
+  const tieneAcciones =
+    typeof datos.acciones === 'object' && datos.acciones !== null && !Array.isArray(datos.acciones)
+  const tienePrompts =
+    typeof datos.prompts === 'object' && datos.prompts !== null && !Array.isArray(datos.prompts)
+
+  if (!tieneAcciones && !tienePrompts) {
+    throw new Error('El archivo no tiene las secciones acciones o prompts.')
+  }
+
+  const normalizado = normalizarProgreso(crudo)
+  const resumen = {
+    acciones: Object.keys(normalizado.acciones).length,
+    prompts: Object.keys(normalizado.prompts).length,
+  }
+
+  if (datos.version !== 1 && resumen.acciones === 0 && resumen.prompts === 0) {
+    throw new Error('El archivo no parece un respaldo de Shop DVA-C03.')
+  }
+
+  progreso.value = normalizado
+  persistir()
+  return resumen
+}
+
 export function reiniciarProgreso(): void {
   progreso.value = progresoVacio()
   try {
