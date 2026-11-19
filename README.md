@@ -2,6 +2,9 @@
 
 SPA de seguimiento del proyecto **Shop**, la tienda en línea serverless de la especificación de estudio para **AWS Certified Developer – Associate (DVA-C03)**.
 
+- Repo: https://github.com/ShykanDev/shop-dva-c03-tracker
+- App: https://shykandev.github.io/shop-dva-c03-tracker/
+
 No es la app de estudio. Es un tracker aparte: checklist, guía paso a paso y prompts de Amazon Q. No modifica `devapp` ni los módulos CLF-C02 / DVA-C03.
 
 ## Qué incluye
@@ -11,6 +14,8 @@ No es la app de estudio. Es un tracker aparte: checklist, guía paso a paso y pr
 - **24 prompts de Amazon Q**: 16 por paso + 8 por lab, cada uno con su propio estado de completado.
 - **8 labs del Paso 14**: Step Functions, Kinesis + Firehose, Athena, Bedrock, ElastiCache/DAX, RDS/Aurora, testing con SAM y blue/green.
 - **Cierre**: definición de terminado, costos y limpieza, y cobertura real del examen.
+- **Documentación técnica**: identidad, usuarios, flujo, stack, 13 rutas, 5 stores, 3 tablas DynamoDB, 2 buckets, 14 Lambdas y datos del examen.
+- **Especificación original** en `public/docs/especificacion-tecnica-dva-c03.txt`, descargable desde la app.
 - **Sugerencias de Vue** en los pasos donde aplican, con el porqué.
 - **Guías concretas**: consola de AWS, CLI, SAM, código TypeScript y criterios de verificación.
 
@@ -27,7 +32,10 @@ npm run typecheck  # vue-tsc --noEmit
 npm test           # vitest run
 npm run build      # typecheck + build de producción
 npm run preview    # servir el build
+npm run deploy     # build + 404.html + push a la rama gh-pages
 ```
+
+El build de producción usa `base: /shop-dva-c03-tracker/` para GitHub Pages. En desarrollo se sirve en `/`.
 
 ## Rutas
 
@@ -38,6 +46,7 @@ npm run preview    # servir el build
 | `/guia` | Redirige a `/guia/paso-0` |
 | `/guia/paso-0` … `/guia/paso-15` | Guía completa del paso, verificaciones y prompt |
 | `/guia/paso-14` | Los 8 labs, cada uno con su prompt |
+| `/proyecto` | Documentación técnica: rutas, tablas, Lambdas, stores y stack |
 | `/cierre` | Definición de terminado, costos y cobertura |
 
 ## Progreso
@@ -70,16 +79,19 @@ Forma del dato:
 ## Estructura
 
 ```
+public/
+  docs/especificacion-tecnica-dva-c03.txt   # fuente de verdad original
 src/
   components/        AppShell, PasoCard, CheckItem, PromptAmazonQ, BloqueGuia…
   composables/       useProgreso, useTotales, useCopiar
   data/
     pasos/           un archivo por paso (paso-00.ts … paso-15.ts)
     pasos/index.ts   PASOS y búsquedas
-    cierre.ts        definición de terminado, costos, cobertura
-  types/proyecto.ts  Paso, Accion, BloqueGuia, Laboratorio, SugerenciaVue
-  views/             ChecklistView, GuiaView, CierreView
-tests/unit/          contenido, progreso y componentes
+    proyecto.ts      rutas, stores, tablas, buckets, Lambdas y cuenta
+    cierre.ts        definición de terminado, costos, cobertura y examen
+  types/proyecto.ts  Paso, Accion, BloqueGuia, Laboratorio, referencias
+  views/             ChecklistView, GuiaView, ProyectoView, CierreView
+tests/unit/          contenido, referencia, progreso y componentes
 ```
 
 ### Cómo agregar una acción
@@ -108,8 +120,18 @@ Los tests comprueban, entre otras cosas:
 
 - 16 pasos (0–15), sin huecos.
 - 100 acciones, 24 prompts, 8 labs y 15 criterios de cierre.
+- 13 rutas, 5 stores, 3 tablas, 2 buckets y 14 Lambdas de la especificación.
+- Que el `.txt` de `public/docs/` contenga todas las secciones, pasos, rutas, tablas y Lambdas.
 - IDs únicos y skills de la especificación por paso.
 - Todos los nombres de rutas, tablas, Lambdas y servicios de la spec.
 - Que no haya planificación por semana ni límites diarios.
 - Persistencia, normalización de datos corruptos y reinicio.
 - Chip «Completado», copia del prompt y accesibilidad del checkbox.
+
+## Deploy
+
+GitHub Pages sirve la rama `gh-pages`, generada por `npm run deploy`.
+
+- `dist/index.html` se copia a `dist/404.html` para que los deep links (`/guia/paso-2`, `/proyecto`) funcionen con Vue Router en modo history.
+- `.nojekyll` evita que Pages procese los assets con Jekyll.
+- El workflow local es: `npm run deploy`, esperar el build de Pages y abrir https://shykandev.github.io/shop-dva-c03-tracker/.

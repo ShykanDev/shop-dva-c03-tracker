@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "SPA de seguimiento del proyecto Shop para DVA-C03",
+  "homepage": "https://shykandev.github.io/shop-dva-c03-tracker/",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
