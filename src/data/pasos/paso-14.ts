@@ -72,7 +72,7 @@ export const paso14: Paso = {
   guia: [
     {
       tipo: 'texto',
-      md: 'La tienda no cubre todo el examen, y ningún proyecto real lo hace. Estos ocho labs cierran las brechas: orquestación, streaming, analítica, IA, SQL, testing y despliegues progresivos. Hazlos después del proyecto, en orden, y borra cada recurso al terminar. La especificación sugiere una sesión corta por lab; si necesitas más tiempo, tómalo: el orden importa más que la prisa.',
+      md: 'La tienda no cubre todo el examen, y ningún proyecto real lo hace. Estos ocho labs cierran las brechas: orquestación, streaming, analítica, IA, SQL, testing y despliegues progresivos. Hazlos después del proyecto, en orden, y borra cada recurso al terminar. La especificación sugiere un máximo de 1 hora por lab; si necesitas más tiempo, tómalo: el orden importa más que la prisa.',
     },
     {
       tipo: 'nota',

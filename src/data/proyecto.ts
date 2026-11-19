@@ -37,7 +37,7 @@ export const PROYECTO: ProyectoReferencia = {
         'Pinia con stores: auth, cart, products, orders y admin',
         'Tailwind CSS',
         'Vue Router',
-        'AWS SDK for JavaScript v3',
+        'AWS SDK for JavaScript v3 (@aws-sdk/client-dynamodb, @aws-sdk/client-s3, @aws-sdk/client-cognito-identity-provider, etc.)',
         'Axios o fetch con token de Cognito',
       ],
     },

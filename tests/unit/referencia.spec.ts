@@ -142,6 +142,9 @@ describe('documentación técnica', () => {
       'Frontend',
       'Backend y AWS',
     ])
+    expect(PROYECTO.stack[0].items.join(' ')).toContain(
+      '@aws-sdk/client-cognito-identity-provider',
+    )
     expect(PROYECTO.contratoLambda).toHaveLength(6)
     expect(PROYECTO.reglasAmazonQ.length).toBeGreaterThanOrEqual(5)
     expect(PROYECTO.cuenta.region).toContain('us-east-1')
