@@ -1,0 +1,167 @@
+import type { Paso } from '@/types/proyecto'
+import { construirPrompt } from './contexto'
+
+export const paso06: Paso = {
+  id: 'paso-6',
+  numero: 6,
+  titulo: 'S3 presigned URLs y fotos',
+  resumen:
+    'Subir fotos desde el admin sin hacer público el bucket, mostrarlas en el catálogo y limpiar las huérfanas.',
+  objetivo:
+    'El admin sube una foto desde /admin/productos/nuevo, la imagen se ve en el catálogo y el bucket sigue privado.',
+  acciones: [
+    {
+      id: 'paso-6.1',
+      texto: 'Crear la Lambda getUploadUrl con presigned URL de 15 minutos',
+      detalle:
+        'Firma un PutObjectCommand con expiresIn: 900. Restringe content-type y prefijo de la key. Solo admin.',
+      skills: ['1.3.1', '2.1.4', '2.2.3'],
+    },
+    {
+      id: 'paso-6.2',
+      texto: 'Subir la foto desde /admin/productos/nuevo y guardar el imageKey',
+      detalle:
+        'Primero pide la URL, luego hace PUT del archivo y por último crea el producto con el imageKey.',
+      skills: ['2.2.1'],
+    },
+    {
+      id: 'paso-6.3',
+      texto: 'Mostrar la foto en /producto/:id con CloudFront o presigned URL de lectura',
+      detalle:
+        'Si el bucket es privado, getProductImageUrl firma un GetObject. Si usas CloudFront, solo las imágenes pasan por el CDN.',
+      skills: ['2.2.1'],
+    },
+    {
+      id: 'paso-6.4',
+      texto: 'Configurar lifecycle en S3 para borrar fotos de productos eliminados a los 30 días',
+      detalle:
+        'Mueve la key a un prefijo deleted/ al eliminar el producto y pon una regla de expiración de 30 días sobre ese prefijo.',
+      skills: ['1.3.1'],
+    },
+  ],
+  verifica: [
+    {
+      id: 'paso-6.v1',
+      texto: 'Foto subida desde el admin visible en el catálogo sin abrir el bucket al público',
+      detalle:
+        'Comprueba que la URL pública directa del objeto falla y que la URL firmada o de CloudFront sí funciona.',
+      skills: ['2.2.1'],
+    },
+  ],
+  skills: ['1.3.1', '2.1.4', '2.2.1', '2.2.3'],
+  guia: [
+    {
+      tipo: 'texto',
+      md: 'La tentación es hacer el bucket público y listo. Eso rompe la seguridad del proyecto y del examen. La forma correcta es que el backend firme una URL temporal para subir y que la lectura pase por CloudFront o por otra URL firmada. Así el bucket queda privado y tú controlas quién escribe y por cuánto tiempo.',
+    },
+    {
+      tipo: 'lista',
+      titulo: 'getUploadUrl en la Lambda',
+      items: [
+        'Crea la función GetUploadUrlFunction con POST /admin/upload-url y autorizador de Cognito.',
+        'En el handler valida que el usuario pertenezca al grupo admin antes de firmar.',
+        'Recibe fileName y contentType. Genera una key única: products/<uuid>-<fileName>.',
+        'Firma un PutObjectCommand con expiresIn: 900 (15 minutos) y devuelve uploadUrl y key.',
+        'Limita el content-type a image/jpeg, image/png o image/webp. Una URL firmada para cualquier tipo permite subir archivos que no son imágenes.',
+      ],
+    },
+    {
+      tipo: 'codigo',
+      lenguaje: 'ts',
+      codigo: [
+        "import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'",
+        "import { getSignedUrl } from '@aws-sdk/s3-request-presigner'",
+        '',
+        'const s3 = new S3Client({ region: "us-east-1" })',
+        'const BUCKET = process.env.IMAGES_BUCKET!',
+        '',
+        'export const handler = async (event: any) => {',
+        '  const body = JSON.parse(event.body ?? "{}")',
+        "  const grupos = event.requestContext.authorizer.claims['cognito:groups'] ?? []",
+        '  if (!String(grupos).includes("admin")) {',
+        '    return { statusCode: 403, body: JSON.stringify({ message: "Solo admin" }) }',
+        '  }',
+        '',
+        '  if (!["image/jpeg", "image/png", "image/webp"].includes(body.contentType)) {',
+        '    return { statusCode: 400, body: JSON.stringify({ message: "Tipo de imagen no permitido" }) }',
+        '  }',
+        '',
+        '  const key = `products/${crypto.randomUUID()}-${body.fileName}`',
+        '  const uploadUrl = await getSignedUrl(',
+        '    s3,',
+        '    new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: body.contentType }),',
+        '    { expiresIn: 900 },',
+        '  )',
+        '',
+        '  return { statusCode: 200, body: JSON.stringify({ uploadUrl, key, expiresIn: 900 }) }',
+        '}',
+      ].join('\n'),
+      nota: 'La URL firmada caduca sola. Si el usuario tarda más de 15 minutos, pide otra. No guardes la URL en DynamoDB: guarda solo la key. El PUT del navegador debe enviar el mismo Content-Type con el que firmaste; si no coincide, S3 rechaza la firma.',
+    },
+    {
+      tipo: 'lista',
+      titulo: 'Subida y visualización',
+      items: [
+        'En /admin/productos/nuevo, al elegir archivo, pide la URL a la API y haz fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file }).',
+        'Muestra el progreso con XMLHttpRequest si quieres barra, o un spinner simple con fetch.',
+        'Cuando el PUT termine con 200, llama a createProduct con el imageKey devuelto.',
+        'Para mostrar la imagen, decide una ruta: bucket privado + getProductImageUrl con GetObject firmado (expira en minutos) o CloudFront con Origin Access Control. CloudFront es mejor para el catálogo porque cachea.',
+        'Nunca guardes el binario en DynamoDB. DynamoDB guarda la key; S3 guarda la foto.',
+      ],
+    },
+    {
+      tipo: 'codigo',
+      lenguaje: 'bash',
+      codigo: [
+        '# Regla de ciclo de vida: borra a los 30 días lo que esté en deleted/',
+        'aws s3api put-bucket-lifecycle-configuration \\',
+        '  --bucket shop-products-images \\',
+        '  --lifecycle-configuration \'{',
+        '    "Rules": [',
+        '      {',
+        '        "ID": "borrar-fotos-eliminadas",',
+        '        "Status": "Enabled",',
+        '        "Filter": { "Prefix": "deleted/" },',
+        '        "Expiration": { "Days": 30 }',
+        '      }',
+        '    ]',
+        '  }\'',
+      ].join('\n'),
+      nota: 'Al eliminar un producto, no borres el objeto de inmediato: copia la key a deleted/ y deja que la regla lo limpie. Así puedes recuperar una foto por error durante 30 días.',
+    },
+    {
+      tipo: 'nota',
+      tono: 'peligro',
+      titulo: 'Bucket privado, siempre',
+      md: 'No actives ACL públicas ni desactives Block Public Access para "que se vea rápido". La foto se sirve por CloudFront o por URL firmada. Un bucket público con fotos de productos es un hallazgo de seguridad típico del examen.',
+    },
+    {
+      tipo: 'nota',
+      tono: 'info',
+      titulo: 'Sugerencia de Vue',
+      md: 'Aquí conviene defineModel para el input de archivo, un ref para el progreso de subida y Teleport para la vista previa. Teleport evita que el modal quede atrapado dentro de un contenedor con overflow.',
+    },
+  ],
+  promptAmazonQ: construirPrompt({
+    paso: 6,
+    titulo: 'S3 presigned URLs y fotos',
+    quiere:
+      'crear la Lambda getUploadUrl con una presigned URL de 15 minutos, subir la foto desde el admin, guardar el imageKey y mostrar la imagen con CloudFront o una URL firmada, con lifecycle de 30 días para fotos eliminadas',
+    yaHice: 'los Pasos 0 a 5: frontend, DynamoDB, API, Cognito, createProduct y createOrder',
+    extra:
+      'Mi bucket shop-products-images debe seguir privado. Quiero que me expliques la diferencia entre presigned URL de subida y de lectura, y por qué no debo guardar la URL firmada en DynamoDB. Muéstrame solo el handler y el fetch del navegador.',
+  }),
+  sugerenciaVue: {
+    titulo: 'defineModel para el archivo, Teleport para la vista previa',
+    porque:
+      'El input de archivo no es un string: necesita un modelo que exponga el File y permita al padre saber cuándo cambió. defineModel evita props + emit manuales. Teleport mueve el modal al body para que no lo recorte un contenedor con overflow.',
+    ejemplo: [
+      'const archivo = defineModel<File | null>({ default: null })',
+      '',
+      'function alCambiar(evento: Event) {',
+      '  const input = evento.target as HTMLInputElement',
+      '  archivo.value = input.files?.[0] ?? null',
+      '}',
+    ].join('\n'),
+  },
+}

@@ -1,0 +1,419 @@
+SUPER MENSAJE — PROYECTO TIENDA EN LINEA PARA DVA-C03
+========================================================
+Para Alejandro — copiar y pegar tal cual a Amazon Q o a tu agente de la Mac.
+Texto plano. Sin fechas por semana. Solo orden: haz el Paso 1, luego
+el 2, y asi.
+Si vas al doble de rapido, avanzas al doble. No hay limite por dia.
+
+VERIFICACION FINAL — SI, ESTE PROYECTO CUMPLE CON DVA-C03
+------------------------------------------------------------
+Verificado contra la guia oficial AWS DVA-C03 (docs.aws.amazon.com, 18
+nov 2026).
+Examen: 65 preguntas, 130 minutos, 720/1000 para pasar, 50 con puntaje
++ 15 sin puntaje.
+Dominios: Desarrollo con AWS 30%, Seguridad 26%, Testing y Deployment
+22%, Troubleshooting y Optimizacion 22%.
+Total oficial: 4 dominios, 12 tareas, 72 habilidades.
+
+Respuesta final: SI, se puede pasar con este proyecto + preguntas de
+escenario + mocks.
+NO, el proyecto solo no cubre literalmente las 72 habilidades. Ningun
+proyecto real lo hace.
+Lo que cubre el proyecto con codigo real es aproximadamente el 70-80%
+del examen.
+Lo que falta se cubre con labs chicos separados y teoria + preguntas,
+listados al final en "LO QUE NO CUBRE EL PROYECTO".
+
+Cobertura por dominio con este proyecto:
+- Dominio 1 Desarrollo con AWS (30%): CUBIERTO CASI COMPLETO. Lambda,
+API Gateway, DynamoDB, S3, SQS, SNS, EventBridge, SDKs, APIs, eventos,
+streaming basico.
+- Dominio 2 Seguridad (26%): CUBIERTO CASI COMPLETO. Cognito, IAM,
+presigned URLs, KMS, Secrets Manager, ACM. Falta solo la parte de IA
+(Tarea 2.3), que se aprende aparte.
+- Dominio 3 Testing y Deployment (22%): CUBIERTO PARCIALMENTE. SAM,
+CloudFormation, CodePipeline, CodeBuild, CodeDeploy, ECR, ECS/Fargate,
+API Gateway stages, Lambda layers y zip. Falta practicar blue/green y
+canary a fondo, que se hace en un lab chico aparte.
+- Dominio 4 Troubleshooting y Optimizacion (22%): CUBIERTO
+PARCIALMENTE. CloudWatch Logs, metricas, alarmas, X-Ray, SQS DLQ,
+Lambda errores, caching. Falta practicar optimizacion de
+memoria/concurrencia, que se hace con pruebas en el mismo proyecto.
+
+Lo que NO se puede meter en una tienda sin forzarlo, y por eso va aparte:
+Aurora/RDS (alternativa a DynamoDB), ElastiCache/DAX (cache, se
+aprende en un lab chico), Kinesis/Firehose/Athena/OpenSearch
+(streaming/analitica), Step Functions (workflow aparte), Elastic
+Beanstalk/Amplify (otras formas de desplegar), Bedrock/Bedrock
+AgentCore/Quick/Kiro (IA, Tarea 2.3), SageMaker AI/Polly/Rekognition
+(FUERA DE ALCANCE, no estudiar).
+
+QUE PROYECTO VAMOS A HACER
+---------------------------
+Nombre: Shop — Tienda en linea serverless.
+Idea en una frase: una tienda real de productos naturales / de
+farmacia, como Amazon chiquito, donde un cliente compra y un admin
+gestiona productos y pedidos.
+
+Quien lo usa:
+- Cliente: se registra, busca productos, agrega al carrito, hace un
+pedido, sube nada, ve sus pedidos.
+- Admin: sube productos con fotos, ve pedidos, cambia estado de
+pendiente a enviado, ve ventas.
+
+Flujo real de uso:
+1. Cliente entra a la tienda, ve catalogo con fotos, precios y stock.
+2. Busca un producto, abre su detalle, lo agrega al carrito.
+3. Va al checkout, confirma su pedido.
+4. El pedido queda guardado, le llega confirmacion.
+5. Admin ve el pedido en su panel, lo marca como enviado.
+6. Cliente ve su pedido como enviado.
+
+STACK TECNICO — SI, USA PINIA
+--------------------------------
+Frontend:
+- Vue 3 + TypeScript + Vite
+- Pinia: SI, usala. Es tu stack real y es lo esperado. Stores: auth,
+cart, products, orders, admin.
+- Tailwind CSS
+- Vue Router
+- AWS SDK for JavaScript v3 (@aws-sdk/client-dynamodb,
+@aws-sdk/client-s3, @aws-sdk/client-cognito-identity-provider, etc.)
+- Axios o fetch para llamar a API Gateway con token de Cognito.
+
+Backend (todo en TypeScript con Node.js 20):
+- AWS Lambda con Node.js 20, TypeScript.
+- AWS SAM para desplegar (template.yaml) + CloudFormation.
+- API Gateway REST API.
+- Amazon DynamoDB (on-demand, para no pagar por capacidad que no usas).
+- Amazon S3 para fotos de productos y frontend.
+- Amazon CloudFront para servir el frontend.
+- Amazon Cognito User Pool para login/registro.
+- Amazon SQS + Dead-Letter Queue para procesar pedidos en segundo plano.
+- Amazon SNS para notificaciones.
+- Amazon EventBridge para eventos programados (limpieza, recordatorios).
+- AWS Secrets Manager y Systems Manager Parameter Store para secretos
+y configuracion.
+- Amazon CloudWatch Logs, metricas y alarmas. AWS X-Ray para tracing.
+- AWS CodePipeline + CodeBuild + CodeDeploy para CI/CD.
+- Amazon ECR + Amazon ECS con AWS Fargate para la version
+contenerizada de un servicio (un solo servicio, no toda la app).
+- AWS Certificate Manager para HTTPS.
+
+Cuenta AWS:
+- Region: us-east-1 (Virginia). Todo en la misma region para no complicarte.
+- Tienes $180 USD en creditos. Pon alarma de billing en $5 y en $20
+USD el primer dia.
+- No dejes EC2 ni ECS prendidos todo el dia. Usa serverless. Borra
+cada lab cuando termines.
+- DynamoDB en modo on-demand. Lambda en free tier (1M requests). S3
+con pocos archivos de prueba.
+
+RUTAS ESPERADAS — FRONTEND VUE
+---------------------------------
+Publicas:
+- / — Inicio, productos destacados
+- /productos — Catalogo, busqueda y filtros
+- /producto/:id — Detalle de un producto
+- /login — Iniciar sesion
+- /registro — Crear cuenta
+- /carrito — Carrito de compras
+
+Protegidas (requieren login con Cognito):
+- /checkout — Confirmar pedido
+- /pedidos — Mis pedidos
+- /pedidos/:id — Detalle de un pedido
+
+Admin (requieren login + grupo admin en Cognito):
+- /admin — Panel, ventas y pedidos
+- /admin/productos — Lista y crear/editar productos
+- /admin/productos/nuevo — Crear producto con foto
+- /admin/pedidos — Lista de pedidos, cambiar estado
+
+Stores Pinia:
+- authStore: usuario, token, login, logout, registro, grupo admin o cliente.
+- cartStore: items, cantidad, total, agregar/quitar/limpiar, persistir
+en localStorage.
+- productsStore: lista, busqueda, filtro, detalle, cache.
+- ordersStore: crear pedido, mis pedidos, detalle.
+- adminStore: productos del admin, pedidos del admin, cambiar estado.
+
+MODELO DE DATOS — DYNAMODB
+----------------------------
+Tabla 1: Shop-Products
+- PK: PRODUCT#<productId>
+- Atributos: productId, name, description, price (number), stock
+(number), category, imageKey (S3), createdAt, updatedAt.
+- GSI1: GSI-Category — PK category, SK price. Para buscar por categoria.
+- Ejemplo: un producto es un item, no una tabla por producto.
+
+Tabla 2: Shop-Orders
+- PK: USER#<userId>
+- SK: ORDER#<orderId>
+- Atributos: orderId, userId, items (lista: productId, name, price,
+qty), total, status (PENDING, PAID, SHIPPED, DELIVERED, CANCELLED),
+createdAt.
+- GSI1: GSI-Status — PK status, SK createdAt. Para que el admin vea
+pedidos por estado.
+
+Tabla 3: Shop-Cart — opcional, puedes guardar el carrito en DynamoDB o
+solo en Pinia + localStorage.
+Si lo guardas en DynamoDB, PK USER#<userId>, SK CART, items lista.
+Empieza con Pinia + localStorage, y luego pasalo a DynamoDB como
+mejora.
+
+S3:
+- Bucket shop-products-images: fotos de productos, acceso por
+presigned URL para subir, lectura publica por CloudFront solo para
+mostrar.
+- Bucket shop-frontend: hosting del frontend Vue compilado, servido
+por CloudFront.
+
+LAMBDAS — UNA POR OPERACION, EN TYPESCRIPT
+--------------------------------------------
+Auth y productos:
+- createProduct (admin): valida, guarda en DynamoDB, guarda imageKey.
+- getProducts: lista con filtro por categoria, paginacion.
+- getProductById: detalle.
+- updateProduct (admin): actualiza precio/stock.
+- deleteProduct (admin): borra, marca como inactivo mejor que borrar.
+
+Pedidos y carrito:
+- createOrder: valida stock, crea pedido en DynamoDB, descuenta stock,
+manda mensaje a SQS.
+- getMyOrders: lista pedidos del usuario logueado.
+- getOrderById: detalle, solo si es tuyo o eres admin.
+- updateOrderStatus (admin): cambia PENDING a SHIPPED, etc.
+
+Archivos:
+- getUploadUrl: genera presigned URL de S3 para subir foto de
+producto. Expira en 15 minutos.
+- getProductImageUrl: genera presigned URL de lectura si la foto es
+privada, o URL de CloudFront si es publica.
+
+Async:
+- processOrder (disparado por SQS): procesa el pedido, si falla 3
+veces va a DLQ.
+- sendOrderNotification (disparado por SNS/EventBridge): notifica
+pedido recibido / enviado.
+- cleanupExpiredCarts (disparado por EventBridge cada dia): borra
+carritos viejos, usa TTL en DynamoDB.
+
+Cada Lambda: handler, variables de entorno en Parameter Store /
+Secrets Manager, rol IAM de minimo privilegio, timeout y memoria
+configurados, logs estructurados en CloudWatch, X-Ray activado.
+
+ORDEN DE CONSTRUCCION — SIN SEMANAS, SOLO ORDEN
+--------------------------------------------------
+Hazlo en este orden. No saltes pasos. Si vas rapido, haces 2 pasos en
+un dia. Si te atoras, te quedas en ese paso hasta que funcione.
+Preguntale a Amazon Q cuando tengas una duda de codigo.
+
+PASO 0 — CUENTA SEGURA
+- Activa MFA en tu usuario root.
+- Crea alarma de billing en $5 y $20 USD en CloudWatch Billing.
+- Revisa en Billing > Credits la fecha de vencimiento de tus $180 USD. Anotala.
+- Crea un usuario IAM para ti para trabajar, no uses root para
+programar. Dale permisos de administrador solo para aprender, y luego
+bajalos a minimo privilegio.
+- Crea el repo en GitHub, nombre shop-dva-c03, con .gitignore para
+node_modules, .env, dist.
+
+PASO 1 — FRONTEND BASE VUE 3
+- Crea la app Vue 3 + TypeScript + Vite + Pinia + Tailwind + Vue Router.
+- Crea las rutas de arriba, aunque esten vacias al inicio.
+- Crea los 5 stores Pinia vacios con su estado inicial.
+- Crea componentes: ProductCard, CartItem, OrderCard, AppHeader, AppButton.
+- Verifica: npm run dev abre, las rutas cargan, Tailwind se ve, Pinia
+guarda el carrito en localStorage.
+- Skill que cubre: desarrollo frontend, no es del examen pero es tu base.
+
+PASO 2 — DYNAMODB Y S3, SIN CODIGO TODAVIA
+- Crea la tabla Shop-Products en DynamoDB on-demand, con GSI por categoria.
+- Crea la tabla Shop-Orders en DynamoDB on-demand, con GSI por estado.
+- Crea el bucket S3 para imagenes.
+- Inserta 5 productos de prueba a mano en la consola.
+- Verifica: puedes ver los items en la consola, y entiendes PK, SK,
+GSI, query vs scan.
+- Skills: 1.3.1, 1.3.2, 1.3.4.
+
+PASO 3 — LAMBDA + API GATEWAY: LEER PRODUCTOS
+- Crea tu primer Lambda en TypeScript con SAM: getProducts y getProductById.
+- Despliegalo con sam deploy.
+- Crea API Gateway REST, rutas GET /products y GET /products/{id},
+integradas con Lambda.
+- Conecta el frontend Vue a esa API, muestra el catalogo real desde DynamoDB.
+- Verifica: la pagina /productos muestra los 5 productos de DynamoDB,
+no datos falsos.
+- Skills: 1.1.1, 1.1.2, 1.1.4, 1.1.5, 1.2.2, 1.2.4, 3.1.5.
+
+PASO 4 — COGNITO + IAM: LOGIN Y REGISTRO
+- Crea Cognito User Pool, con grupo admin y grupo customer.
+- Conecta el frontend: registro, login, logout, token guardado en
+Pinia authStore.
+- Protege las rutas /checkout, /pedidos y /admin con un guard de Vue
+Router que pide login.
+- Crea un rol IAM para Lambda que solo pueda leer/escribir DynamoDB de
+Shop, nada mas.
+- Verifica: sin login no entras a /checkout. Con login de cliente no
+entras a /admin. Con login de admin si.
+- Skills: 2.1.1, 2.1.2, 2.1.3, 2.1.5, 2.1.6, 2.1.7.
+
+PASO 5 — CREAR PRODUCTO Y PEDIDO
+- Lambda createProduct (admin) y createOrder (cliente logueado).
+- createOrder: valida stock, crea el pedido, descuenta stock con
+ConditionExpression para no vender de mas.
+- Conecta el carrito Pinia al checkout: al confirmar, llama a
+createOrder y limpia el carrito.
+- Verifica: haces un pedido real, aparece en Shop-Orders, el stock
+baja, y si intentas comprar mas de lo que hay, falla con mensaje
+claro.
+- Skills: 1.1.5, 1.1.7, 1.2.3, 1.3.4, 2.1.4, 2.2.1, 2.2.6.
+
+PASO 6 — S3 PRESIGNED URLS Y FOTOS
+- Lambda getUploadUrl: genera presigned URL de S3 para subir foto,
+expira en 15 minutos.
+- En /admin/productos/nuevo, sube la foto con esa URL, guarda el
+imageKey en DynamoDB.
+- Muestra la foto en /producto/:id con CloudFront o presigned URL de lectura.
+- Configura lifecycle en S3: borra fotos de productos eliminados a los 30 dias.
+- Verifica: subes una foto desde el admin y se ve en el catalogo.
+- Skills: 1.3.1, 2.1.4, 2.2.1, 2.2.3.
+
+PASO 7 — SQS + DLQ + SNS: PEDIDOS ASINCRONOS
+- Crea cola SQS Shop-Orders-Queue y su DLQ Shop-Orders-DLQ.
+- createOrder ya no procesa todo en el momento: manda un mensaje a SQS.
+- Lambda processOrder lee de SQS, procesa, si falla 3 veces el mensaje va a DLQ.
+- SNS: cuando el pedido pasa a SHIPPED, manda notificacion.
+- Verifica: haces un pedido, ves el mensaje en SQS, ves el log en
+CloudWatch, y si fuerzas un error, el mensaje termina en DLQ.
+- Skills: 1.1.2, 1.1.8, 1.2.3, 4.1.1, 4.3.3.
+
+PASO 8 — EVENTBRIDGE Y SECRETOS
+- EventBridge: regla cada dia que dispara cleanupExpiredCarts.
+- Secrets Manager: guarda una clave de prueba, leela desde Lambda, no
+la pongas en codigo.
+- Parameter Store: guarda configuracion por entorno (dev/prod), leela
+desde Lambda.
+- Verifica: el cleanup corre, y ningun secreto esta en el codigo ni en GitHub.
+- Skills: 1.1.8, 2.2.7, 3.1.4.
+
+PASO 9 — CLOUDWATCH + X-RAY: VER QUE PASA
+- Activa logs estructurados en todos los Lambda (JSON con requestId,
+userId, accion).
+- Crea metricas personalizadas: pedidos creados, errores de Lambda.
+- Crea alarmas: si errores > 5 en 5 minutos, alarma.
+- Activa X-Ray en API Gateway y Lambda, ve un trace completo de una compra.
+- Verifica: haces una compra, ves el trace en X-Ray y los logs en
+CloudWatch Logs Insights con una query.
+- Skills: 4.1.2, 4.1.3, 4.2.1, 4.2.2, 4.2.3, 4.2.4, 4.2.5.
+
+PASO 10 — SAM / CLOUDFORMATION + CI/CD
+- Pasa todo tu SAM template.yaml a un solo archivo que despliega
+Lambda, API Gateway, DynamoDB, S3, SQS, Cognito.
+- Crea CodePipeline: GitHub -> CodeBuild -> CodeDeploy -> dev -> prod.
+- Usa CodeDeploy con Lambda aliases para despliegue blue/green o
+canary en una Lambda.
+- Usa layers para codigo compartido y .zip vs imagen de contenedor,
+entiende la diferencia.
+- Verifica: haces push a GitHub, el pipeline despliega solo, y puedes
+hacer rollback.
+- Skills: 3.1.1, 3.1.3, 3.1.4, 3.2.1, 3.2.4, 3.3.1, 3.3.3, 3.3.4,
+3.3.5, 3.3.6, 3.3.7, 3.3.8.
+
+PASO 11 — CONTENEDORES ECR/ECS/FARGATE
+- Crea una imagen Docker de un solo servicio: por ejemplo, un servicio
+de recomendaciones o de imagenes.
+- Subela a ECR con tag y lifecycle policy.
+- Despliegala en ECS con Fargate, con task definition, sin servidores.
+- Verifica: el servicio responde, y entiendes ECR vs ECS vs EKS, y
+Fargate vs EC2.
+- Skills: 3.1.2, 3.3.2.
+- Ojo: apaga el servicio ECS cuando termines el lab, para no gastar
+creditos. No lo dejes prendido.
+
+PASO 12 — OPTIMIZACION Y SEGURIDAD FINAL
+- Prueba Lambda con memoria 128 vs 512 MB, mide tiempo y costo.
+- Prueba provisioned concurrency en una Lambda critica.
+- Prueba caching: ElastiCache o DAX en concepto, y CloudFront para fotos.
+- Revisa cifrado en reposo y en transito, ACM para HTTPS, WAF basico
+en API Gateway.
+- Verifica: sabes explicar por que elegiste cada configuracion.
+- Skills: 4.3.1, 4.3.2, 4.3.4, 4.3.5, 2.2.1, 2.2.2, 2.2.4.
+
+PASO 13 — FRONTEND EN PRODUCCION
+- Compila Vue: npm run build.
+- Sube dist a S3, sirve con CloudFront + ACM.
+- Verifica: la tienda abre en tu dominio de CloudFront, login
+funciona, compra completa funciona de punta a punta.
+- Borra recursos de prueba que no uses. Deja solo lo necesario para la demo.
+
+PASO 14 — LO QUE NO CUBRE EL PROYECTO — LABS CHICOS APARTE
+Haz estos labs despues del proyecto, uno por uno, en orden, cada uno
+en maximo 1 hora:
+1. Step Functions: un workflow de 3 pasos para procesar un pedido
+(validar, cobrar, enviar). Solo para entenderlo.
+2. Kinesis + Firehose: manda eventos de clicks a Kinesis, guardalos en
+S3. Solo concepto + lab chico.
+3. Athena: consulta los logs de S3 con SQL. Solo 1 query.
+4. Bedrock: invoca un modelo para generar descripcion de un producto.
+Pide acceso al modelo primero. Luego estudia Tarea 2.3: permisos,
+privacidad, filtrado, prompt injection, logs sin PII.
+5. ElastiCache / DAX: explica por que lo usarias para el catalogo, sin
+dejarlo prendido.
+6. RDS/Aurora: explica cuando usarias SQL en vez de DynamoDB, sin
+crear una base real cara.
+7. Testing: escribe 5 tests con SAM para una Lambda, usa mock de API
+Gateway, crea un evento JSON de prueba.
+8. Blue/green y canary: practica con Lambda aliases y CodeDeploy en
+una Lambda de prueba.
+
+PASO 15 — EXAMEN: PREGUNTAS Y MOCKS
+- Usa tu app de estudio DVA-C03 (la que esta haciendo tu agente) para
+preguntas por dominio y tarea.
+- Haz diagnosticos por tarea, repasa las debiles.
+- Haz simulacros completos: 65 preguntas, 130 minutos, sin pausar,
+como el examen real.
+- Meta para presentarte: 80% o mas en mocks varias veces seguidas, y
+sin fallar siempre en el mismo dominio.
+- Cuando llegues ahi, agenda el examen en Pearson VUE / OnVUE, en
+espanol si prefieres, con tu cupon del 50% ($75 USD).
+- Examen: 1 dic 2026 en adelante. Tu meta: estudiar hasta 30 dic 2026,
+presentar a inicios de enero 2027, sin presion.
+
+COMO PREGUNTARLE A AMAZON Q
+------------------------------
+Cuando te atores, preguntale asi, con contexto:
+"Estoy haciendo una tienda en linea serverless con Vue 3, Lambda en
+TypeScript, DynamoDB y API Gateway. Estoy en el Paso X [describe el
+paso]. Me da este error [pega el error]. Que debo revisar primero y por
+que?"
+No le preguntes "hazme todo el proyecto". Preguntale por un paso, un
+error, o un concepto del examen.
+
+DEFINICION DE TERMINADO
+------------------------
+El proyecto esta listo cuando:
+- Puedes registrarte, comprar, y ver tu pedido, de punta a punta, en produccion.
+- Un admin puede crear un producto con foto y cambiar un pedido a enviado.
+- Un pedido fallido termina en DLQ y lo ves en CloudWatch.
+- Puedes desplegar con un push a GitHub y hacer rollback.
+- Puedes explicar, sin leer, por que elegiste Lambda y no EC2,
+DynamoDB y no RDS, SQS y no llamada directa, presigned URL y no bucket
+publico.
+- Sacas 80% o mas en mocks varias veces seguidas.
+
+COSTOS Y LIMPIEZA
+-----------------
+- Revisa Billing cada 2 dias.
+- Borra tablas, buckets, colas y servicios ECS cuando termines un lab.
+- No crees EKS, no crees RDS grande, no dejes NAT Gateway prendido.
+- Si algo te cobra mas de $5 USD en un dia y no sabes por que, paralo
+y preguntale a Amazon Q o a Dyn.
+
+FIN DEL SUPER MENSAJE
+---------------------
+Empieza por el Paso 0. No saltes al Paso 10.
+Si vas al doble, haz 2 pasos por dia. Si te atoras, quedate en ese paso.
+Tu meta no es terminar rapido, es entender cada paso lo suficiente
+para contestar una pregunta del examen sobre ese paso.

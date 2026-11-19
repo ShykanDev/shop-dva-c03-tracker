@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
+
+  --color-canvas: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-ink: #1d1d1f;
+  --color-ink-2: #55575d;
+  --color-ink-3: #8e8e93;
+  --color-line: #e4e8ee;
+  --color-line-strong: #cfd6e0;
+  --color-accent: #0a68d6;
+  --color-accent-deep: #0854ad;
+  --color-accent-soft: #eaf3ff;
+  --color-success: #1e9c58;
+  --color-success-soft: #e8f7ef;
+  --color-warning: #b46a08;
+  --color-warning-soft: #fff4e0;
+  --color-danger: #cf2f27;
+  --color-danger-soft: #fdeceb;
+
+  --radius-btn: 0.75rem;
+  --radius-card: 1rem;
+  --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.04),
+    0 8px 24px -16px rgba(16, 24, 40, 0.18);
+  --shadow-pop: 0 2px 4px rgba(16, 24, 40, 0.04),
+    0 24px 48px -24px rgba(16, 24, 40, 0.22);
+}
+
+:root {
+  color-scheme: light;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
