@@ -15,6 +15,7 @@ No es la app de estudio. Es un tracker aparte: checklist, guía paso a paso y pr
 - **8 labs del Paso 14**: Step Functions, Kinesis + Firehose, Athena, Bedrock, ElastiCache/DAX, RDS/Aurora, testing con SAM y blue/green.
 - **Cierre**: definición de terminado, costos y limpieza, y cobertura real del examen.
 - **Respaldo**: exportar el progreso a JSON e importarlo en otro navegador o dispositivo.
+- **Resaltador global**: selecciona texto y márcalo con 4 colores, persistente por ruta.
 - **Documentación técnica** (`/proyecto`): identidad, usuarios, flujo, stack, 13 rutas, 5 stores, 3 tablas DynamoDB, 2 buckets, 14 Lambdas y datos del examen.
 - **Contratos técnicos** (`/contratos`): la fuente única de verdad de stores, rutas, Lambdas, tablas y variables, con el paso donde se implementa cada cosa.
 - **Especificación original** en `public/docs/especificacion-tecnica-dva-c03.txt`, descargable desde la app.
@@ -77,6 +78,25 @@ Forma del dato:
 - Si el JSON se corrompe, la app arranca en blanco sin lanzar.
 - El botón de reinicio de `/cierre` borra solo esa clave.
 - Copiar el proyecto a otra Mac no traslada el progreso: usa exportar/importar.
+
+## Resaltador de texto
+
+Selecciona cualquier texto de la app y aparece una barra flotante para marcarlo con
+cuatro colores (amarillo, verde, azul, rosa). Sirve para subrayar lo importante de
+cada guía.
+
+- **Cómo**: arrastra sobre el texto y elige un color. También con
+  `Cmd/Ctrl + Shift + 1…4`.
+- **Quitar**: vuelve a seleccionar el mismo texto; la barra cambia a
+  «Quitar resaltado» y confirma.
+- **Persistencia**: `localStorage['shop-dva-c03:resaltados']`, independiente del
+  progreso. Cada resaltado guarda su ruta, su ancla, los offsets y el color.
+- **Alcance**: solo pinta dentro de `<main>`, nunca dentro de la propia herramienta.
+- **Requisito**: CSS Custom Highlight API (Chrome 105+, Safari 17+, Edge 105+).
+  Si el navegador no la soporta, la herramienta avisa y no rompe nada.
+- **Progreso intacto**: los resaltados no tocan `shop-dva-c03:progress`.
+
+Código: `src/composables/useResaltados.ts` y `src/components/ResaltadorGlobal.vue`.
 
 ### Respaldo y traslado
 
@@ -153,6 +173,7 @@ Los tests comprueban, entre otras cosas:
 - Que no haya planificación por semana ni límites diarios.
 - Persistencia, normalización de datos corruptos y reinicio.
 - Exportación/importación de respaldo JSON, validación y rechazo de archivos inválidos.
+- Resaltados: persistencia, aislamiento por ruta, quitar y datos corruptos.
 - Chip «Completado», copia del prompt y accesibilidad del checkbox.
 
 ## Deploy

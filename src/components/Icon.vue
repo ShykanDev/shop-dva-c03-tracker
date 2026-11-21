@@ -19,6 +19,8 @@ const props = withDefaults(
       | 'code'
       | 'download'
       | 'upload'
+      | 'highlighter'
+      | 'trash'
     size?: number
   }>(),
   { size: 18 },
@@ -40,6 +42,8 @@ const paths: Record<string, string> = {
   code: 'm8 7-5 5 5 5m8-10 5 5-5 5',
   download: 'M12 3v12m0 0 4-4m-4 4-4-4M4 21h16',
   upload: 'M12 21V9m0 0 4 4m-4-4-4 4M4 3h16',
+  highlighter: 'M9 11l-4 4v4h7l4-4M13 7l4 4m-6-6 6 6',
+  trash: 'M3 6h18M8 6V4h8v2m-9 0v14h10V6M10 11v5m4-5v5',
 }
 
 const d = computed(() => paths[props.name] ?? paths.check)
