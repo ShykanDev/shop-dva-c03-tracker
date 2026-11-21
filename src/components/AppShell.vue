@@ -28,6 +28,12 @@ const tabs = computed(() => [
     activo: route.path.startsWith('/proyecto'),
   },
   {
+    to: '/contratos',
+    label: 'Contratos',
+    icon: 'list' as const,
+    activo: route.path.startsWith('/contratos'),
+  },
+  {
     to: '/cierre',
     label: 'Cierre',
     icon: 'flag' as const,

@@ -58,7 +58,8 @@ export const paso09: Paso = {
       tipo: 'lista',
       titulo: 'Logs estructurados',
       items: [
-        'Crea un helper logger.ts que reciba acción, userId, orderId y resultado, y devuelva un solo JSON.',
+        'Crea src/lib/logger.ts en el backend (junto a los handlers, no dentro de un layer todavía). Recibe acción, userId, orderId y resultado, y devuelve un solo JSON.',
+        'En el Paso 10 mueve logger.ts al layer compartido shop-shared para reutilizarlo en todas las Lambdas sin copiarlo.',
         'En cada handler, genera o toma el requestId de event.requestContext.requestId. No inventes uno nuevo si ya viene.',
         'Registra el inicio y el fin de la operación. En errores, registra el nombre del error y el stack, nunca el token ni la contraseña.',
         'No uses console.log con strings concatenados: CloudWatch no puede filtrar por campos si todo es texto plano.',
@@ -69,6 +70,7 @@ export const paso09: Paso = {
       tipo: 'codigo',
       lenguaje: 'ts',
       codigo: [
+        '// src/lib/logger.ts',
         'export function log(evento: {',
         '  accion: string',
         '  requestId?: string',

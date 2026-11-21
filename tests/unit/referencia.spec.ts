@@ -24,13 +24,20 @@ describe('documentación técnica', () => {
     expect(RUTAS.filter((ruta) => ruta.tipo === 'admin')).toHaveLength(4)
   })
 
-  it('declara los 5 stores de Pinia', () => {
+  it('declara los 5 stores de Pinia con su archivo y export', () => {
     expect(STORES.map((store) => store.nombre)).toEqual([
-      'authStore',
-      'cartStore',
-      'productsStore',
-      'ordersStore',
-      'adminStore',
+      'useAuthStore',
+      'useCartStore',
+      'useProductsStore',
+      'useOrdersStore',
+      'useAdminStore',
+    ])
+    expect(STORES.map((store) => store.archivo)).toEqual([
+      'src/stores/auth.ts',
+      'src/stores/cart.ts',
+      'src/stores/products.ts',
+      'src/stores/orders.ts',
+      'src/stores/admin.ts',
     ])
   })
 

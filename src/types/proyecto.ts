@@ -10,7 +10,14 @@ export interface Accion {
 export type BloqueGuia =
   | { tipo: 'texto'; md: string }
   | { tipo: 'lista'; titulo?: string; items: string[]; ordenada?: boolean }
-  | { tipo: 'codigo'; lenguaje: string; codigo: string; nota?: string }
+  | {
+      tipo: 'codigo'
+      lenguaje: string
+      codigo: string
+      nota?: string
+      /** Archivo o nombre del bloque cuando hay varios snippets seguidos. */
+      titulo?: string
+    }
   | {
       tipo: 'nota'
       tono: 'info' | 'aviso' | 'peligro'
@@ -79,8 +86,11 @@ export interface RutaProyecto {
 
 export interface StoreProyecto {
   nombre: string
+  archivo?: string
   estado: string
   acciones: string
+  paso?: number
+  implementadoEn?: number
 }
 
 export interface IndiceProyecto {

@@ -6,6 +6,13 @@ import type {
   StoreProyecto,
   TablaProyecto,
 } from '@/types/proyecto'
+import {
+  BUCKETS as CONTRATOS_BUCKETS,
+  LAMBDAS as CONTRATOS_LAMBDAS,
+  RUTAS as CONTRATOS_RUTAS,
+  STORES as CONTRATOS_STORES,
+  TABLAS as CONTRATOS_TABLAS,
+} from './contratos'
 
 export const PROYECTO: ProyectoReferencia = {
   nombre: 'Shop — Tienda en línea serverless',
@@ -92,154 +99,163 @@ export const PROYECTO: ProyectoReferencia = {
   ],
 }
 
-export const RUTAS: RutaProyecto[] = [
-  { ruta: '/', tipo: 'pública', descripcion: 'Inicio y productos destacados' },
-  { ruta: '/productos', tipo: 'pública', descripcion: 'Catálogo, búsqueda y filtros' },
-  { ruta: '/producto/:id', tipo: 'pública', descripcion: 'Detalle de un producto' },
-  { ruta: '/login', tipo: 'pública', descripcion: 'Iniciar sesión' },
-  { ruta: '/registro', tipo: 'pública', descripcion: 'Crear cuenta' },
-  { ruta: '/carrito', tipo: 'pública', descripcion: 'Carrito de compras' },
-  { ruta: '/checkout', tipo: 'protegida', descripcion: 'Confirmar pedido' },
-  { ruta: '/pedidos', tipo: 'protegida', descripcion: 'Mis pedidos' },
-  { ruta: '/pedidos/:id', tipo: 'protegida', descripcion: 'Detalle de un pedido' },
-  { ruta: '/admin', tipo: 'admin', descripcion: 'Panel, ventas y pedidos' },
-  { ruta: '/admin/productos', tipo: 'admin', descripcion: 'Lista y crear/editar productos' },
-  { ruta: '/admin/productos/nuevo', tipo: 'admin', descripcion: 'Crear producto con foto' },
-  { ruta: '/admin/pedidos', tipo: 'admin', descripcion: 'Lista de pedidos y cambio de estado' },
-]
+const DESCRIPCION_RUTA: Record<string, string> = {
+  '/': 'Inicio y productos destacados',
+  '/productos': 'Catálogo, búsqueda y filtros',
+  '/producto/:id': 'Detalle de un producto',
+  '/login': 'Iniciar sesión',
+  '/registro': 'Crear cuenta',
+  '/carrito': 'Carrito de compras',
+  '/checkout': 'Confirmar pedido',
+  '/pedidos': 'Mis pedidos',
+  '/pedidos/:id': 'Detalle de un pedido',
+  '/admin': 'Panel, ventas y pedidos',
+  '/admin/productos': 'Lista y crear/editar productos',
+  '/admin/productos/nuevo': 'Crear producto con foto',
+  '/admin/pedidos': 'Lista de pedidos y cambio de estado',
+}
 
-export const STORES: StoreProyecto[] = [
-  {
-    nombre: 'authStore',
-    estado: 'usuario, token, grupos',
-    acciones: 'login, logout, registro, grupo admin o cliente',
-  },
-  {
-    nombre: 'cartStore',
-    estado: 'items, cantidad, total',
-    acciones: 'agregar, quitar, limpiar y persistir en localStorage',
-  },
-  {
-    nombre: 'productsStore',
-    estado: 'lista, filtro, detalle, caché',
-    acciones: 'búsqueda, filtro por categoría y carga del catálogo',
-  },
-  {
-    nombre: 'ordersStore',
-    estado: 'pedido actual, mis pedidos',
-    acciones: 'crear pedido, listar mis pedidos y ver el detalle',
-  },
-  {
-    nombre: 'adminStore',
-    estado: 'productos y pedidos del admin',
-    acciones: 'crear/editar productos y cambiar el estado de un pedido',
-  },
-]
+const TIPO_RUTA: Record<string, RutaProyecto['tipo']> = {
+  público: 'pública',
+  cognito: 'protegida',
+  admin: 'admin',
+  'n/a': 'pública',
+}
 
-export const TABLAS: TablaProyecto[] = [
-  {
-    nombre: 'Shop-Products',
-    pk: 'PRODUCT#<productId>',
-    sk: '—',
-    atributos: [
-      'productId',
-      'name',
-      'description',
-      'price (number)',
-      'stock (number)',
-      'category',
-      'imageKey (S3)',
-      'createdAt',
-      'updatedAt',
-    ],
-    indices: [
-      {
-        nombre: 'GSI-Category',
-        pk: 'category',
-        sk: 'price',
-        uso: 'Buscar productos por categoría ordenados por precio.',
-      },
-    ],
-    nota: 'Un producto es un item, no una tabla por producto.',
-  },
-  {
-    nombre: 'Shop-Orders',
-    pk: 'USER#<userId>',
-    sk: 'ORDER#<orderId>',
-    atributos: [
-      'orderId',
-      'userId',
-      'items (productId, name, price, qty)',
-      'total',
-      'status (PENDING, PAID, SHIPPED, DELIVERED, CANCELLED)',
-      'createdAt',
-    ],
-    indices: [
-      {
-        nombre: 'GSI-Status',
-        pk: 'status',
-        sk: 'createdAt',
-        uso: 'Pedidos por estado ordenados por fecha para el admin.',
-      },
-    ],
-    nota: 'El cliente consulta por USER#<userId>; el admin consulta por estado.',
-  },
-  {
-    nombre: 'Shop-Cart',
-    pk: 'USER#<userId>',
-    sk: 'CART',
-    atributos: ['items (lista)', 'expiresAt (TTL opcional)'],
-    indices: [],
-    nota: 'Opcional. Empieza con Pinia + localStorage y migra el carrito a DynamoDB como mejora.',
-  },
-]
+/** Derivado de contratos.ts: una sola lista de rutas en todo el proyecto. */
+export const RUTAS: RutaProyecto[] = CONTRATOS_RUTAS.map((ruta) => ({
+  ruta: ruta.ruta,
+  tipo: TIPO_RUTA[ruta.auth],
+  descripcion: DESCRIPCION_RUTA[ruta.ruta] ?? '',
+}))
 
-export const BUCKETS: BucketProyecto[] = [
-  {
-    nombre: 'shop-products-images',
-    uso: 'Fotos de productos.',
-    acceso: 'Subida por presigned URL de 15 minutos; lectura por CloudFront o presigned URL.',
-  },
-  {
-    nombre: 'shop-frontend',
-    uso: 'Frontend Vue compilado.',
-    acceso: 'Servido por CloudFront con S3 privado y Origin Access Control.',
-  },
-]
+/** Derivado de contratos.ts: los 5 stores con la misma firma que las guías. */
+export const STORES: StoreProyecto[] = CONTRATOS_STORES.map((store) => ({
+  nombre: store.export,
+  archivo: store.archivo,
+  estado: Object.keys(store.estado).join(', '),
+  acciones: store.acciones.join(', '),
+  paso: store.paso,
+  implementadoEn: store.implementadoEn,
+}))
 
+const ATRIBUTOS_TABLA: Record<string, string[]> = {
+  'Shop-Products': [
+    'productId',
+    'name',
+    'description',
+    'price (number)',
+    'stock (number)',
+    'category',
+    'imageKey (S3)',
+    'createdAt',
+    'updatedAt',
+  ],
+  'Shop-Orders': [
+    'orderId',
+    'userId',
+    'items (productId, name, price, qty)',
+    'total',
+    'status (PENDING, PAID, SHIPPED, DELIVERED, CANCELLED)',
+    'createdAt',
+  ],
+  'Shop-Cart': ['items (lista)', 'expiresAt (TTL opcional)'],
+}
+
+const NOTA_TABLA: Record<string, string> = {
+  'Shop-Products': 'Un producto es un item, no una tabla por producto.',
+  'Shop-Orders': 'El cliente consulta por USER#<userId>; el admin consulta por estado.',
+  'Shop-Cart':
+    'Opcional. Empieza con Pinia + localStorage y migra el carrito a DynamoDB como mejora.',
+}
+
+const INDICES_TABLA: Record<string, TablaProyecto['indices']> = {
+  'Shop-Products': [
+    {
+      nombre: 'GSI-Category',
+      pk: 'category',
+      sk: 'price',
+      uso: 'Buscar productos por categoría ordenados por precio.',
+    },
+  ],
+  'Shop-Orders': [
+    {
+      nombre: 'GSI-Status',
+      pk: 'status',
+      sk: 'createdAt',
+      uso: 'Pedidos por estado ordenados por fecha para el admin.',
+    },
+  ],
+  'Shop-Cart': [],
+}
+
+export const TABLAS: TablaProyecto[] = CONTRATOS_TABLAS.map((tabla) => ({
+  nombre: tabla.nombre,
+  pk: tabla.pk,
+  sk: tabla.sk,
+  atributos: ATRIBUTOS_TABLA[tabla.nombre] ?? [],
+  indices: INDICES_TABLA[tabla.nombre] ?? [],
+  nota: NOTA_TABLA[tabla.nombre] ?? '',
+}))
+
+const ACCESO_BUCKET: Record<string, string> = {
+  'shop-products-images':
+    'Subida por presigned URL de 15 minutos; lectura por CloudFront o presigned URL.',
+  'shop-frontend': 'Servido por CloudFront con S3 privado y Origin Access Control.',
+}
+
+export const BUCKETS: BucketProyecto[] = CONTRATOS_BUCKETS.map((bucket) => ({
+  nombre: bucket.nombre,
+  uso: bucket.uso,
+  acceso: ACCESO_BUCKET[bucket.nombre] ?? '',
+}))
+
+const GRUPO_LAMBDA: Record<string, string> = {
+  createProduct: 'Auth y productos',
+  getProducts: 'Auth y productos',
+  getProductById: 'Auth y productos',
+  updateProduct: 'Auth y productos',
+  deleteProduct: 'Auth y productos',
+  createOrder: 'Pedidos y carrito',
+  getMyOrders: 'Pedidos y carrito',
+  getOrderById: 'Pedidos y carrito',
+  updateOrderStatus: 'Pedidos y carrito',
+  getUploadUrl: 'Archivos',
+  getProductImageUrl: 'Archivos',
+  processOrder: 'Async',
+  sendOrderNotification: 'Async',
+  cleanupExpiredCarts: 'Async',
+}
+
+const PROPOSITO_LAMBDA: Record<string, string> = {
+  createProduct: 'Admin: valida, guarda en DynamoDB y guarda imageKey.',
+  getProducts: 'Lista con filtro por categoría y paginación.',
+  getProductById: 'Detalle de un producto.',
+  updateProduct: 'Admin: actualiza precio y stock.',
+  deleteProduct: 'Admin: marca como inactivo en vez de borrar.',
+  createOrder: 'Valida stock, crea el pedido, descuenta stock y manda mensaje a SQS.',
+  getMyOrders: 'Lista los pedidos del usuario logueado.',
+  getOrderById: 'Detalle, solo si es tuyo o eres admin.',
+  updateOrderStatus: 'Admin: cambia PENDING a SHIPPED, etc.',
+  getUploadUrl: 'Presigned URL de S3 para subir una foto; expira en 15 minutos.',
+  getProductImageUrl: 'Presigned URL de lectura o URL de CloudFront para la foto.',
+  processOrder: 'Disparada por SQS; si falla 3 veces, va a la DLQ.',
+  sendOrderNotification: 'Disparada por SNS/EventBridge; notifica pedido recibido o enviado.',
+  cleanupExpiredCarts: 'Disparada por EventBridge cada día; borra carritos viejos y usa TTL.',
+}
+
+/** Derivado de contratos.ts: agrupado para la vista /proyecto. */
 export const LAMBDAS: GrupoLambdas[] = [
-  {
-    grupo: 'Auth y productos',
-    funciones: [
-      { nombre: 'createProduct', proposito: 'Admin: valida, guarda en DynamoDB y guarda imageKey.' },
-      { nombre: 'getProducts', proposito: 'Lista con filtro por categoría y paginación.' },
-      { nombre: 'getProductById', proposito: 'Detalle de un producto.' },
-      { nombre: 'updateProduct', proposito: 'Admin: actualiza precio y stock.' },
-      { nombre: 'deleteProduct', proposito: 'Admin: marca como inactivo en vez de borrar.' },
-    ],
-  },
-  {
-    grupo: 'Pedidos y carrito',
-    funciones: [
-      { nombre: 'createOrder', proposito: 'Valida stock, crea el pedido, descuenta stock y manda mensaje a SQS.' },
-      { nombre: 'getMyOrders', proposito: 'Lista los pedidos del usuario logueado.' },
-      { nombre: 'getOrderById', proposito: 'Detalle, solo si es tuyo o eres admin.' },
-      { nombre: 'updateOrderStatus', proposito: 'Admin: cambia PENDING a SHIPPED, etc.' },
-    ],
-  },
-  {
-    grupo: 'Archivos',
-    funciones: [
-      { nombre: 'getUploadUrl', proposito: 'Presigned URL de S3 para subir una foto; expira en 15 minutos.' },
-      { nombre: 'getProductImageUrl', proposito: 'Presigned URL de lectura o URL de CloudFront para la foto.' },
-    ],
-  },
-  {
-    grupo: 'Async',
-    funciones: [
-      { nombre: 'processOrder', proposito: 'Disparada por SQS; si falla 3 veces, va a la DLQ.' },
-      { nombre: 'sendOrderNotification', proposito: 'Disparada por SNS/EventBridge; notifica pedido recibido o enviado.' },
-      { nombre: 'cleanupExpiredCarts', proposito: 'Disparada por EventBridge cada día; borra carritos viejos y usa TTL.' },
-    ],
-  },
-]
+  'Auth y productos',
+  'Pedidos y carrito',
+  'Archivos',
+  'Async',
+].map((grupo) => ({
+  grupo,
+  funciones: CONTRATOS_LAMBDAS.filter(
+    (lambda) => GRUPO_LAMBDA[lambda.nombre] === grupo,
+  ).map((lambda) => ({
+    nombre: lambda.nombre,
+    proposito: PROPOSITO_LAMBDA[lambda.nombre] ?? '',
+  })),
+}))

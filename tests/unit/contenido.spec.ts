@@ -77,8 +77,8 @@ describe('contenido del proyecto', () => {
       (total, paso) => total + accionesDePaso(paso).length,
       0,
     )
-    expect(accionesDePasos).toBe(85)
-    expect(TOTAL_ACCIONES).toBe(100)
+    expect(accionesDePasos).toBe(88)
+    expect(TOTAL_ACCIONES).toBe(103)
   })
 
   it('usa ids únicos en acciones, verificaciones, labs, cierre y prompts', () => {

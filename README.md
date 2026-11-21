@@ -10,12 +10,13 @@ No es la app de estudio. Es un tracker aparte: checklist, guía paso a paso y pr
 ## Qué incluye
 
 - **Paso 0 al Paso 15**, en orden, sin fechas por semana ni límites diarios.
-- **100 acciones marcables**: 85 en los 16 pasos + 15 en el cierre.
+- **103 acciones marcables**: 88 en los 16 pasos + 15 en el cierre.
 - **24 prompts de Amazon Q**: 16 por paso + 8 por lab, cada uno con su propio estado de completado.
 - **8 labs del Paso 14**: Step Functions, Kinesis + Firehose, Athena, Bedrock, ElastiCache/DAX, RDS/Aurora, testing con SAM y blue/green.
 - **Cierre**: definición de terminado, costos y limpieza, y cobertura real del examen.
 - **Respaldo**: exportar el progreso a JSON e importarlo en otro navegador o dispositivo.
-- **Documentación técnica**: identidad, usuarios, flujo, stack, 13 rutas, 5 stores, 3 tablas DynamoDB, 2 buckets, 14 Lambdas y datos del examen.
+- **Documentación técnica** (`/proyecto`): identidad, usuarios, flujo, stack, 13 rutas, 5 stores, 3 tablas DynamoDB, 2 buckets, 14 Lambdas y datos del examen.
+- **Contratos técnicos** (`/contratos`): la fuente única de verdad de stores, rutas, Lambdas, tablas y variables, con el paso donde se implementa cada cosa.
 - **Especificación original** en `public/docs/especificacion-tecnica-dva-c03.txt`, descargable desde la app.
 - **Sugerencias de Vue** en los pasos donde aplican, con el porqué.
 - **Guías concretas**: consola de AWS, CLI, SAM, código TypeScript y criterios de verificación.
@@ -43,7 +44,7 @@ El build de producción usa `base: /shop-dva-c03-tracker/` para GitHub Pages. En
 | Ruta | Contenido |
 |---|---|
 | `/` | Redirige a `/checklist` |
-| `/checklist` | Las 100 acciones, agrupadas por paso |
+| `/checklist` | Las 103 acciones, agrupadas por paso |
 | `/guia` | Redirige a `/guia/paso-0` |
 | `/guia/paso-0` … `/guia/paso-15` | Guía completa del paso, verificaciones y prompt |
 | `/guia/paso-14` | Los 8 labs, cada uno con su prompt |
@@ -97,11 +98,12 @@ src/
   data/
     pasos/           un archivo por paso (paso-00.ts … paso-15.ts)
     pasos/index.ts   PASOS y búsquedas
-    proyecto.ts      rutas, stores, tablas, buckets, Lambdas y cuenta
+    contratos.ts     fuente única: stores, rutas, Lambdas, tablas, variables
+    proyecto.ts      derivado de contratos.ts + identidad y stack
     cierre.ts        definición de terminado, costos, cobertura y examen
   types/proyecto.ts  Paso, Accion, BloqueGuia, Laboratorio, referencias
-  views/             ChecklistView, GuiaView, ProyectoView, CierreView
-tests/unit/          contenido, referencia, progreso y componentes
+  views/             ChecklistView, GuiaView, ProyectoView, ContratosView, CierreView
+tests/unit/          contenido, referencia, contratos, progreso, componentes y cierre
 ```
 
 ### Cómo agregar una acción
@@ -110,6 +112,18 @@ tests/unit/          contenido, referencia, progreso y componentes
 2. Agrega un objeto a `acciones` o `verifica` con un `id` único (`paso-NN.M`).
 3. Si el total cambia, actualiza el conteo en `tests/unit/contenido.spec.ts`.
 4. Ejecuta `npm test` y `npm run typecheck`.
+
+### Cómo agregar un recurso (store, Lambda, ruta, tabla, variable)
+
+`src/data/contratos.ts` es la fuente única. Los guardrails de `tests/unit/contratos.spec.ts`
+fallan si una guía nombra algo que no está ahí, si un store no tiene snippet en su paso,
+si una Lambda no tiene acción marcable, si una variable se usa sin declararu o si
+`/proyecto` y `/contratos` no cuentan lo mismo.
+
+1. Añade el recurso en `contratos.ts` con `paso` y `origen` (`spec` o `convencion`).
+2. Escribe su guía en el paso indicado, con el «cómo», el snippet y su verificación.
+3. Si es una Lambda, crea su acción con `accion: 'paso-N.M'` y que el id exista.
+4. `npm test` debe quedar en verde antes de commitear.
 
 ## Reutilización desde devapp
 
@@ -129,8 +143,10 @@ npm run build
 Los tests comprueban, entre otras cosas:
 
 - 16 pasos (0–15), sin huecos.
-- 100 acciones, 24 prompts, 8 labs y 15 criterios de cierre.
+- 103 acciones, 24 prompts, 8 labs y 15 criterios de cierre.
 - 13 rutas, 5 stores, 3 tablas, 2 buckets y 14 Lambdas de la especificación.
+- Contratos: cada store con archivo, export, estado y snippet; cada Lambda con acción marcable, ruta y variables; cada variable declarada en el paso que la crea.
+- Coherencia checklist ↔ `/proyecto` ↔ `/contratos`.
 - Que el `.txt` de `public/docs/` contenga todas las secciones, pasos, rutas, tablas y Lambdas.
 - IDs únicos y skills de la especificación por paso.
 - Todos los nombres de rutas, tablas, Lambdas y servicios de la spec.

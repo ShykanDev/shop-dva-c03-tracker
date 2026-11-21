@@ -55,8 +55,8 @@ const { copiado, copiar } = useCopiar()
     class="overflow-hidden rounded-xl border border-line bg-[#fbfcfe]"
   >
     <div class="flex items-center justify-between gap-3 border-b border-line px-3 py-1.5">
-      <span class="font-mono text-[11px] font-semibold uppercase tracking-wide text-ink-3">
-        {{ bloque.lenguaje }}
+      <span class="min-w-0 truncate font-mono text-[11px] font-semibold uppercase tracking-wide text-ink-3">
+        <span v-if="bloque.titulo" class="text-ink-2">{{ bloque.titulo }} · </span>{{ bloque.lenguaje }}
       </span>
       <button
         type="button"

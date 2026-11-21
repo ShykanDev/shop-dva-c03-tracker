@@ -58,6 +58,13 @@ const estadisticas = [
           <Icon name="book" :size="14" />
           Empezar la guía
         </RouterLink>
+        <RouterLink
+          to="/contratos"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-[12.5px] font-semibold text-ink-2 transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          <Icon name="list" :size="14" />
+          Ver contratos técnicos
+        </RouterLink>
         <a
           :href="especificacionUrl"
           download

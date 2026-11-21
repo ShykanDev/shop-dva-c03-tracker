@@ -54,9 +54,16 @@ export const paso08: Paso = {
         'Consola → EventBridge → Rules → Create rule. Nombre: Shop-Cleanup-Carts.',
         'Event source: Schedule. Schedule pattern: cron(0 3 * * ? *). Eso es todos los días a las 03:00 UTC.',
         'Target: la Lambda cleanupExpiredCarts. Si la creas desde la consola, EventBridge te ofrece crear el permiso de invocación.',
+        'Declara CARTS_TABLE como variable de entorno de cleanupExpiredCarts. La tabla es Shop-Cart.',
         'Para probar sin esperar un día, invoca la Lambda a mano desde la consola. El horario no es requisito para validar la lógica.',
         'En la Lambda, borra carritos con expiresAt anterior a ahora y también registra cuántos borró. Un cleanup silencioso no se puede auditar.',
       ],
+    },
+    {
+      tipo: 'nota',
+      tono: 'aviso',
+      titulo: 'Antes de programar la regla: ¿tienes Shop-Cart?',
+      md: 'El Paso 2 marcó Shop-Cart como opcional. Si decides no crear la tabla, no dejes esta regla activa: fallará todos los días y ensuciará CloudWatch. Dos opciones válidas: (a) crea Shop-Cart con PK USER#<userId>, SK CART y el atributo expiresAt en epoch, o (b) no crees la regla y documenta en el README por qué no aplica. No hay una tercera: una regla que falla a diario no es una demo.',
     },
     {
       tipo: 'codigo',
