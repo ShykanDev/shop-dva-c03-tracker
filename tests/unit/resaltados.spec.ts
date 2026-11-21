@@ -8,6 +8,7 @@ import {
   resaltarSegmento,
   reiniciarResaltadosEnMemoria,
   recargarResaltados,
+  rutaActual,
   useResaltados,
   type SegmentoSeleccion,
 } from '@/composables/useResaltados'
@@ -127,6 +128,18 @@ describe('resaltados persistentes', () => {
     history.replaceState({}, '', '/cierre')
     expect(quitarEnSegmento(capturado)).toBe(1)
     expect(useResaltados().value).toHaveLength(0)
+  })
+
+  it('normaliza la ruta quitando el base del despliegue', () => {
+    // En GitHub Pages el pathname incluye /shop-dva-c03-tracker/.
+    const base = import.meta.env.BASE_URL
+    if (base === '/') {
+      history.replaceState({}, '', '/guia/paso-4')
+      expect(rutaActual()).toBe('/guia/paso-4')
+    } else {
+      history.replaceState({}, '', `${base}guia/paso-4`)
+      expect(rutaActual()).toBe('/guia/paso-4')
+    }
   })
 
   it('resaltar sin navegador no rompe', () => {

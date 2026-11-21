@@ -29,10 +29,19 @@ export interface SegmentoSeleccion {
   ruta: string
 }
 
+/** La ruta en el formato que usa Vue Router: sin el base del despliegue. */
 function rutaActual(): string {
   if (typeof window === 'undefined') return '/'
-  return window.location.pathname.replace(/\/$/, '') || '/'
+  const base = import.meta.env.BASE_URL || '/'
+  let ruta = window.location.pathname
+  // En GitHub Pages el pathname trae /shop-dva-c03-tracker/ delante.
+  if (base !== '/' && ruta.startsWith(base)) {
+    ruta = `/${ruta.slice(base.length)}`
+  }
+  return ruta.replace(/\/$/, '') || '/'
 }
+
+export { rutaActual }
 
 function esColorValido(valor: unknown): valor is ColorResaltado {
   return (
